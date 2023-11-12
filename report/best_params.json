@@ -1,0 +1,1 @@
+{"n_estimators": 1000, "learning_rate": 0.08852846712094593, "max_depth": 8, "colsample_bylevel": 0.9257154143033968, "l2_leaf_reg": 59.56697245221916, "random_strength": 14.141015168972931, "bootstrap_type": "No", "border_count": 254, "grow_policy": "Depthwise", "od_wait": 650, "leaf_estimation_iterations": 12, "use_best_model": true}

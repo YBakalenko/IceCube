@@ -1,0 +1,120 @@
+preprocessing:
+  kaggle_competition: icecube-neutrinos-in-deep-ice
+  kaggle_creds: ../config/kaggle.json
+  file_dirs:
+    sensor_geometry:
+      filename: sensor_geometry.csv
+      kaggle_dir: ""
+      local_dir: ../data/raw/
+    train_meta:
+      filename: train_meta.parquet
+      kaggle_dir: ""
+      local_dir: ../data/raw/
+    train_batches:
+      filename: batch_{batch_id:d}.parquet
+      kaggle_dir: train/
+      local_dir: ../data/raw/batches/
+      ids: [1, 10]
+    train_meta_sample:
+      filename: train_meta_sample.parquet
+      local_dir: ../data/raw/
+    train_batches_sample:
+      filename: batches_sample.parquet
+      local_dir: ../data/raw/batches/
+  train_data_path: ../data/raw/
+  train_dataset: ../data/processed/train_dataset.parquet
+  test_size: 0.25
+  batch_column: batch_id
+  event_column: event_id
+  aux_column: auxiliary
+  sensor_column: sensor_id
+  line_column: line_id
+  charge_column: charge
+  coordinate_columns: ['x', 'y', 'z']
+  time_column: time
+  target_columns: ['azimuth', 'zenith']
+  target_cart_columns: ['dx', 'dy', 'dz']
+  event_vector_columns: ['vx', 'vy', 'vz']
+  coord_std_columns: ['x_std', 'y_std', 'z_std']
+  time_aggregator:
+    time: ['min']
+  prepare_aggregators:
+    auxiliary: ['mean']
+    charge: ['sum']
+    time: ['min']
+  multiplication:
+    xt: ['x', 'time']
+    yt: ['y', 'time']
+    zt: ['z', 'time']
+    tt: ['time', 'time']
+    qx: ['charge', 'x']
+    qy: ['charge', 'y']
+    qz: ['charge', 'z']
+    qt: ['charge', 'time']
+  aggregators:
+    time: ['count', 'median', 'mean', 'std']
+    x: ['min', 'max', 'mean', 'std']
+    y: ['min', 'max', 'mean', 'std']
+    z: ['min', 'max', 'mean', 'std']
+    charge: ['mean', 'max']
+    xt: ['mean']
+    yt: ['mean']
+    zt: ['mean']
+    tt: ['mean']
+    qt: ['mean']
+    line_id: [nunique]
+    sensor_id: [nunique]
+  divisions:
+    pulses_per_line: ['time_count', 'line_id_nunique']
+    pulses_per_dom: ['time_count', 'sensor_id_nunique']
+  log_scale_transform: ['charge_mean', 'charge_max']
+  log_features:
+    pulses: 'time_count'
+  drop_columns: ['line_id_nunique', 'sensor_id_nunique']
+  random_state: 10
+
+train:
+  n_trials: 10
+  n_folds: 5
+  random_state: 10
+  file_dirs:
+    processed_batches:
+        filename: batch_{batch_id:d}.parquet
+        local_dir: ../data/processed/batches/
+        ids: [1, 10]
+    processed_batches_sample:
+      filename: batches_sample.parquet
+      local_dir: ../data/processed/batches/
+
+  sensor_scaler_path: ../models/sensor_scaler.joblib
+  sensor_pca_path: ../models/sensor_pca.joblib
+  model_path: ../models/model.joblib
+  study_path: ../models/study.joblib
+  metrics_path: ../report/metrics.json
+  params_path: ../report/best_params.json
+  n_estimators: 1000
+  learning_rate: 0.08852846712094593
+
+evaluate:
+  predict_path: ../data/check/
+  predict_columns: ['pred_azimuth', 'pred_zenith']
+  file_dirs:
+    test_meta:
+      filename: test_meta.parquet
+      kaggle_dir: ""
+      local_dir: ../data/check/
+    test_batch:
+      filename: batch_661.parquet
+      kaggle_dir: train/
+      local_dir: ../data/check/batches/
+  template_batch:
+    filename: batch_template.parquet
+    local_dir: ../data/check/batches/
+
+endpoints:
+  train: 'http://fastapi:8000/train'
+  prediction_input: 'http://fastapi:8000/predict_input'
+  prediction_from_file: 'http://fastapi:8000/predict'
+#  train: 'http://localhost:8000/train'
+#  prediction_input: 'http://localhost:8000/predict_input'
+#  prediction_from_file: 'http://localhost:8000/predict'
